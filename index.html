@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>조각함수의 미분가능성</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>body{font-family:'Inter',sans-serif;background-color:#f8fafc}.math-display{font-size:1.1rem;margin:1.5rem 0;padding:1.2rem;background-color:#fff;border-left:4px solid #3b82f6;border-radius:.5rem}.concept-box{background-color:#eff6ff;border-radius:.75rem;padding:1.5rem;margin-bottom:1.5rem;border:1px solid #dbeafe}.option-label{transition:all .2s;cursor:pointer;display:block}.option-label:hover{background-color:#eff6ff}.page{display:none}.page.active{display:block}button:disabled{opacity:.5}</style>
+</head>
+<body class="p-4 sm:p-8 md:p-12 text-slate-800">
+    <div id="app" class="max-w-4xl mx-auto bg-white shadow-2xl rounded-3xl p-6 sm:p-10 border border-slate-100">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-slate-900 mb-2">조각함수의 미분가능성</h1>
+        <p class="text-center text-slate-500 mb-8">10단계 빌드업 변형문제</p>
+        <div id="page-study" class="page active">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-2">핵심 원리</h2>
+            <div class="concept-box"><h3 class="text-xl font-bold text-blue-600 mb-3">조각함수의 미분가능성 조건</h3><div class="math-display">$$\\text{연속} + \\text{좌미분계수} = \\text{우미분계수}$$</div></div>
+            <div class="concept-box"><h3 class="text-xl font-bold text-blue-600 mb-3">절댓값과 미분가능성</h3><div class="math-display">$$|x|^3 = \\begin{cases} x^3 & (x \\geq 0) \\\\ -x^3 & (x < 0) \\end{cases}$$<p class="mt-2">$x = 0$에서 미분가능</p></div></div>
+            <div class="mt-8 mb-4"><label for="username-input" class="block text-sm font-medium text-slate-600 mb-1">학생 이름</label><input type="text" id="username-input" placeholder="이름을 입력하세요" class="w-full p-3 border border-slate-300 rounded-lg"></div>
+            <button onclick="startQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl mt-2">문제 풀이 시작하기</button>
+        </div>
+        <div id="page-quiz" class="page">
+            <div id="quiz-header" class="mb-6"><div class="flex justify-between items-end mb-2"><span class="text-lg font-bold text-blue-700">Step <span id="current-q-number">1</span></span><span class="text-sm text-slate-400">Total 10 Questions</span></div><div class="w-full bg-slate-100 rounded-full h-2"><div id="progress-bar" class="bg-blue-600 h-2 rounded-full" style="width:0%"></div></div></div>
+            <div id="question-area" class="min-h-[250px] p-6 bg-slate-50 rounded-2xl border border-slate-200"><p id="question-text" class="text-xl font-medium text-slate-800 mb-8"></p><div id="options-container" class="space-y-3"></div></div>
+            <div id="feedback" class="mt-6 p-4 rounded-xl text-white font-semibold hidden"></div>
+            <div class="flex gap-3 mt-8"><button onclick="prevQuestion()" id="prev-btn" class="hidden px-6 bg-slate-200 text-slate-700 font-bold py-4 rounded-xl">이전</button><button onclick="submitAnswer()" id="submit-btn" class="flex-1 bg-slate-900 text-white font-bold py-4 rounded-xl">정답 확인</button><button onclick="nextQuestion()" id="next-btn" class="hidden flex-1 bg-blue-600 text-white font-bold py-4 rounded-xl">다음 단계</button></div>
+        </div>
+        <div id="page-results" class="page text-center p-8"><div class="mb-6 text-6xl">🏆</div><h2 class="text-3xl font-extrabold text-slate-800 mb-2">학습 완료!</h2><div class="text-7xl font-black text-blue-600 my-8"><span id="final-score">0</span><span class="text-3xl text-slate-400">/10</span></div><button onclick="window.location.reload()" class="bg-white border-2 border-slate-900 text-slate-900 font-bold py-3 px-8 rounded-xl">다시 도전하기</button></div>
+    </div>
+    <script>
+        const GOOGLE_SCRIPT_URL='';let currentQuestionIndex=0;let userName="";let userAnswers=[];
+        const questions=[
+            {q:"$f(x) = 3$은 $x = 0$에서 미분가능한가?",options:["예","아니오","조건에 따라 다름","알 수 없다"],ans:"예",exp:"상수함수는 모든 점에서 미분가능"},
+            {q:"$f(x) = |x|^3$은 $x = 0$에서 미분가능한가?",options:["예","아니오","조건에 따라 다름","알 수 없다"],ans:"예",exp:"$|x|^3 = x^2 \\cdot |x|$이고 $f'(0) = 0$으로 미분가능"},
+            {q:"$f(x) = \\dfrac{|x|}{x}$ ($x \\neq 0$)은 $x = 0$에서 연속인가?",options:["예","아니오","정의되지 않음","알 수 없다"],ans:"정의되지 않음",exp:"$f(0)$이 정의되지 않음"},
+            {q:"$f(x) = x + |x|$은 $x = 0$에서 미분가능한가?",options:["예","아니오","조건에 따라 다름","알 수 없다"],ans:"아니오",exp:"$x > 0$: $f(x) = 2x$, $x < 0$: $f(x) = 0$로 좌우 미분계수가 다름"},
+            {q:"$f(x) = \\begin{cases} (x+1)^2 & (x \\geq 0) \\\\ 2x+1 & (x < 0) \\end{cases}$은 $x = 0$에서 연속인가?",options:["예","아니오","조건에 따라 다름","알 수 없다"],ans:"예",exp:"$\\lim_{x \\to 0^+} = 1$, $\\lim_{x \\to 0^-} = 1$, $f(0) = 1$"},
+            {q:"위 함수에서 $x = 0$에서의 우미분계수는?",options:["$1$","$2$","$0$","$-1$"],ans:"$2$",exp:"$(x+1)^2$의 미분은 $2(x+1)$이므로 $f'(0^+) = 2$"},
+            {q:"위 함수에서 $x = 0$에서의 좌미분계수는?",options:["$1$","$2$","$0$","$-1$"],ans:"$2$",exp:"$2x+1$의 미분은 $2$이므로 $f'(0^-) = 2$"},
+            {q:"따라서 위 함수는 $x = 0$에서 미분가능한가?",options:["예","아니오","조건에 따라 다름","알 수 없다"],ans:"예",exp:"좌미분계수 $= 2 =$ 우미분계수이므로 미분가능"},
+            {q:"다음 중 $x = 0$에서 연속이지만 미분불가능한 함수는?",options:["$f(x) = 3$","$f(x) = |x|^3$","$f(x) = x + |x|$","위 조각함수"],ans:"$f(x) = x + |x|}$",exp:"$f(x) = x + |x|$은 연속이지만 좌우 미분계수가 다름"},
+            {q:"$f(x) = \\begin{cases} ax^2 + bx & (x \\geq 0) \\\\ cx + d & (x < 0) \\end{cases}$가 $x = 0$에서 미분가능하려면?",options:["$d = 0$이고 $b = c$","$a = c$이고 $b = d$","$b = c$만 성립","$d = 0$만 성립"],ans:"$d = 0$이고 $b = c$",exp:"연속: $f(0) = 0 = d$, 미분가능: $f'(0) = b = c$"}
+        ];
+        userAnswers=new Array(questions.length).fill(null);
+        function renderMath(el){renderMathInElement(el||document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});}
+        function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
+        function startQuiz(){userName=document.getElementById('username-input').value.trim();if(!userName)return alert("이름을 입력해주세요!");showPage('page-quiz');loadQuestion();}
+        function loadQuestion(){const q=questions[currentQuestionIndex];document.getElementById('current-q-number').textContent=currentQuestionIndex+1;document.getElementById('question-text').innerHTML=q.q;document.getElementById('progress-bar').style.width=`${(currentQuestionIndex/questions.length)*100}%`;const optContainer=document.getElementById('options-container');optContainer.innerHTML='';const existingAnswer=userAnswers[currentQuestionIndex];q.options.forEach(opt=>{const label=document.createElement('label');label.className="option-label block p-4 bg-white border border-slate-200 rounded-xl shadow-sm";const isChecked=existingAnswer&&existingAnswer.selected===opt;label.innerHTML=`<div class="flex items-center"><input type="radio" name="quiz-opt" value="${opt}" class="w-5 h-5 text-blue-600 mr-3" ${isChecked?'checked':''} ${existingAnswer?'disabled':''}><span class="text-lg">${opt}</span></div>`;optContainer.appendChild(label);});document.getElementById('prev-btn').classList.toggle('hidden',currentQuestionIndex===0);if(existingAnswer){showFeedbackUI(existingAnswer.isCorrect,q.ans,q.exp);document.getElementById('submit-btn').classList.add('hidden');document.getElementById('next-btn').classList.remove('hidden');}else{document.getElementById('feedback').classList.add('hidden');document.getElementById('submit-btn').classList.remove('hidden');document.getElementById('next-btn').classList.add('hidden');}renderMath(document.getElementById('question-area'));}
+        function showFeedbackUI(isCorrect,ans,exp){const fb=document.getElementById('feedback');fb.classList.remove('hidden');fb.className=`mt-6 p-5 rounded-xl text-white shadow-lg ${isCorrect?'bg-emerald-500':'bg-rose-500'}`;fb.innerHTML=`<div class="flex items-center mb-2"><span class="text-2xl mr-2">${isCorrect?'🎉':'❌'}</span><span class="text-lg font-bold">${isCorrect?"정답입니다!":"아쉽네요."}</span></div>${!isCorrect?`<div class="mb-2">정답: <strong>${ans}</strong></div>`:''}<div class="text-sm opacity-90 border-t border-white/20 pt-2 mt-2">${exp}</div>`;renderMath(fb);}
+        function submitAnswer(){const selected=document.querySelector('input[name="quiz-opt"]:checked');if(!selected)return alert("보기를 선택해주세요!");const q=questions[currentQuestionIndex];const isCorrect=selected.value.replace(/\s/g,'')===q.ans.replace(/\s/g,'');userAnswers[currentQuestionIndex]={selected:selected.value,isCorrect};showFeedbackUI(isCorrect,q.ans,q.exp);document.querySelectorAll('input[name="quiz-opt"]').forEach(r=>r.disabled=true);document.getElementById('submit-btn').classList.add('hidden');document.getElementById('next-btn').classList.remove('hidden');}
+        function prevQuestion(){if(currentQuestionIndex>0){currentQuestionIndex--;loadQuestion();}}
+        function nextQuestion(){currentQuestionIndex++;if(currentQuestionIndex<questions.length)loadQuestion();else finishQuiz();}
+        function finishQuiz(){showPage('page-results');document.getElementById('final-score').textContent=userAnswers.filter(a=>a&&a.isCorrect).length;}
+        window.onload=()=>renderMath();
+    </script>
+</body>
+</html>
